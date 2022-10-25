@@ -29,7 +29,7 @@ body {
 .hangul-row > div {
     background-color: white;
     border-radius: 0.5rem;
-    border-width: 0.15rem;
+    border-width: 0.2rem;
     border-style: solid;
     border-color: transparent;
     cursor: pointer;
@@ -215,6 +215,9 @@ function updateGrid() {
             sel[columnGroupName] = columnIndex;
             const char = composeHangul(sel["choseong"], sel["jungseong"], sel["jongseong"]);
             cell.innerText = char;
+            cell.onclick = event => handleGridCellClick(event.target, rowGroupName, columnGroupName);
+            cell.classList.toggle("selected",
+                (rowIndex === selectedJamos[rowGroupName]) && (columnIndex === selectedJamos[columnGroupName]));
             rowElement.appendChild(cell);
         }
         gridElement.appendChild(rowElement);
@@ -242,9 +245,6 @@ function updateCellSelection(jamoGroupName) {
             child.classList.toggle("selected", i === selectedJamos[jamoGroupName]);
         }
     }
-    updateBigCharacter();
-    updateCombinations();
-    updateGrid();
 }
 
 
@@ -259,6 +259,28 @@ function handleCellClick(element) {
         }
     }
     updateCellSelection(jamoGroupName);
+    updateBigCharacter();
+    updateCombinations();
+    updateGrid();
+}
+
+
+function handleGridCellClick(element, rowGroupName, columnGroupName) {
+    const row = element.parentElement;
+    const rows = [...row.parentElement.children];
+    const rowElements = [...row.children];
+    const columnIndex = rowElements.indexOf(element);
+    const rowIndex = rows.indexOf(row);
+    rows[selectedJamos[rowGroupName]].children[selectedJamos[columnGroupName]].classList.remove("selected");
+    rows[rowIndex].children[columnIndex].classList.add("selected");
+    selectedJamos[rowGroupName] = rowIndex;
+    selectedJamos[columnGroupName] = columnIndex;
+    updateBigCharacter();
+    updateCombinations();
+    updateCellSelection(rowGroupName);
+    updateCellSelection(columnGroupName);
+    console.log(columnIndex, rowIndex);
+    console.log(rowGroupName, columnGroupName);
 }
 
 
@@ -303,6 +325,8 @@ function handleArrowKeys(event) {
         }
         selectRow(jamoGroupNames[groupIndex]);
     }
+    updateBigCharacter();
+    updateCombinations();
     updateGrid();
 }
 
