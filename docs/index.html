@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hangul Explorer</title>
+    <style type="text/css">
+
+body {
+    font-family: sans-serif;
+    font-size: 1.2rem;
+    background-color: lightgray;
+    padding: 1rem;
+}
+
+.row-label {
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.hangul-row {
+    display: flex;
+    flex-direction: row;
+    font-size:  3rem;
+    gap: 0.25rem;
+}
+
+.hangul-row > div {
+    background-color: white;
+    border-radius: 0.5rem;
+    border-width: 0.15rem;
+    border-style: solid;
+    border-color: transparent;
+    cursor: pointer;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+.hangul-row.selected > .selected {
+    border-color: #F44;
+}
+
+.hangul-row > .selected {
+    border-color: #777;
+}
+
+#big-character {
+    margin-top: 2.25rem;
+    margin-bottom: 1.25rem;
+    background-color: white;
+    border-radius: 1rem;
+    font-size: 15rem;
+    width: 15rem;
+    text-align: center;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+    </style>
+    <script type="text/javascript">
+
+"use strict";
+
+const choseongBase = 0x1100;
+const jungseongBase = 0x1161;
+const jongseongBase = 0x11A7;
+const hangulBase = 0xAC00;
+
+const choseongCount = 19;
+const jungseongCount = 21;
+const jongseongCount = 28;
+
+
+function composeHangul(choseongIndex, jungseongIndex, jongseongIndex) {
+    const hCode = (
+        jungseongCount * jongseongCount * choseongIndex
+        + jongseongCount * jungseongIndex
+        + jongseongIndex
+        + hangulBase
+    );
+    return String.fromCodePoint(hCode);
+}
+
+
+const jamoGroups = {
+    "choseong": [
+        "ᄀ", "ᄁ", "ᄂ", "ᄃ", "ᄄ", "ᄅ", "ᄆ", "ᄇ", "ᄈ", "ᄉ", "ᄊ", "ᄋ", "ᄌ", "ᄍ",
+        "ᄎ", "ᄏ", "ᄐ", "ᄑ", "ᄒ",
+    ],
+    "jungseong": [
+        "ᅡ", "ᅢ", "ᅣ", "ᅤ", "ᅥ", "ᅦ", "ᅧ", "ᅨ", "ᅩ", "ᅪ", "ᅫ", "ᅬ", "ᅭ", "ᅮ",
+        "ᅯ", "ᅰ", "ᅱ", "ᅲ", "ᅳ", "ᅴ", "ᅵ",
+    ],
+    "jongseong": [
+        "", "ᆨ", "ᆩ", "ᆪ", "ᆫ", "ᆬ", "ᆭ", "ᆮ", "ᆯ", "ᆰ", "ᆱ", "ᆲ", "ᆳ", "ᆴ",
+        "ᆵ", "ᆶ", "ᆷ", "ᆸ", "ᆹ", "ᆺ", "ᆻ", "ᆼ", "ᆽ", "ᆾ", "ᆿ", "ᇀ", "ᇁ", "ᇂ",
+    ],
+};
+
+
+const jamoGroupNames = Object.keys(jamoGroups);
+
+
+const selectedJamos = {
+    "choseong": 0,
+    "jungseong": 0,
+    "jongseong": 0,
+};
+
+
+function updateBigCharacter() {
+    const element = document.querySelector("#big-character");
+    const char = composeHangul(...Object.values(selectedJamos));
+    element.innerText = char;
+}
+
+
+function updateCombinations() {
+    for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
+        const rowElement = document.querySelector(`#${jamoGroupName}-characters`);
+        const siblings = rowElement.children;
+        for (let i = 0; i < jamos.length; i++) {
+            const jamo = jamos[i];
+            const cell = siblings[i];
+            const sel = {...selectedJamos};
+            sel[jamoGroupName] = i;
+            const char = composeHangul(sel["choseong"], sel["jungseong"], sel["jongseong"]);
+            cell.innerText = char;
+        }
+    }
+}
+
+
+function selectRow(selectedJamoGroupName) {
+    for (const jamoGroupName of jamoGroupNames) {
+        for (const rowType of ["jamo", "characters"]) {
+            const rowElement = document.querySelector(`#${jamoGroupName}-${rowType}`);
+            rowElement.classList.toggle("selected", jamoGroupName === selectedJamoGroupName);
+        }
+    }
+
+}
+
+
+function updateCellSelection(jamoGroupName) {
+    for (const rowType of ["jamo", "characters"]) {
+        const siblings = document.querySelector(`#${jamoGroupName}-${rowType}`).children;
+        for (let i = 0; i < siblings.length; i++) {
+            const child = siblings[i];
+            child.classList.toggle("selected", i === selectedJamos[jamoGroupName]);
+        }
+    }
+    updateBigCharacter();
+    updateCombinations();
+}
+
+
+function handleCellClick(element) {
+    const siblings = element.parentElement.children;
+    const jamoGroupName = element.parentElement.id.split("-", 1)[0];
+    selectRow(jamoGroupName);
+    for (let i = 0; i < siblings.length; i++) {
+        if (siblings[i] === element) {
+            selectedJamos[jamoGroupName] = i;
+            break;
+        }
+    }
+    updateCellSelection(jamoGroupName);
+}
+
+
+function handleArrowKeys(event) {
+    let cellIndexDelta = 0;
+    let rowIndexDelta = 0;
+    switch (event.key) {
+        case "ArrowLeft":
+            cellIndexDelta = -1;
+            break;
+        case "ArrowRight":
+            cellIndexDelta = 1;
+            break;
+        case "ArrowUp":
+            rowIndexDelta = -1;
+            break;
+        case "ArrowDown":
+            rowIndexDelta = 1;
+            break;
+        default:
+            return;
+    }
+    event.preventDefault();
+    const rowElement = document.querySelector(".hangul-row.selected");
+    const numSiblings = rowElement.children.length;
+    const jamoGroupName = rowElement.id.split("-", 1)[0];
+    if (cellIndexDelta) {
+        selectedJamos[jamoGroupName] += cellIndexDelta;
+        if (selectedJamos[jamoGroupName] < 0) {
+            selectedJamos[jamoGroupName] += numSiblings;
+        } else if (selectedJamos[jamoGroupName] >= numSiblings) {
+            selectedJamos[jamoGroupName] -= numSiblings;
+        }
+        updateCellSelection(jamoGroupName);
+    } else {
+        let groupIndex = jamoGroupNames.indexOf(jamoGroupName);
+        groupIndex += rowIndexDelta;
+        if (groupIndex < 0) {
+            groupIndex += 3;
+        } else if (groupIndex >= 3) {
+            groupIndex -= 3;
+        }
+        selectRow(jamoGroupNames[groupIndex]);
+    }
+}
+
+
+function setup() {
+    for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
+        for (const rowType of ["jamo", "characters"]) {
+            const rowElement = document.querySelector(`#${jamoGroupName}-${rowType}`);
+            for (let i = 0; i < jamos.length; i++) {
+                const jamo = jamos[i];
+                const cell = document.createElement("div");
+                cell.innerText = jamo || "\u00A0\u00A0\u00A0";
+                cell.onclick = event => handleCellClick(event.target);
+                if (i === selectedJamos[jamoGroupName]) {
+                    cell.classList.add("selected");
+                }
+                rowElement.appendChild(cell);
+            }
+        }
+    }
+    window.onkeydown = handleArrowKeys;
+    updateBigCharacter();
+    updateCombinations();
+    selectRow("choseong");
+}
+
+window.onload = () => setup();
+
+    </script>
+</head>
+<body>
+    <div class="row-label">Choseong</div>
+    <div class="hangul-row" id="choseong-jamo">
+        <!-- contents are added dynamically -->
+    </div>
+    <div class="row-label">Jungseong</div>
+    <div class="hangul-row" id="jungseong-jamo">
+        <!-- contents are added dynamically -->
+    </div>
+    <div class="row-label">Jongseong</div>
+    <div class="hangul-row" id="jongseong-jamo">
+        <!-- contents are added dynamically -->
+    </div>
+
+    <div id="big-character">
+        <!-- contents are added dynamically -->
+    </div>
+
+    <div class="row-label">Choseong combinations</div>
+    <div class="hangul-row" id="choseong-characters">
+        <!-- contents are added dynamically -->
+    </div>
+    <div class="row-label">Jungseong combinations</div>
+    <div class="hangul-row" id="jungseong-characters">
+        <!-- contents are added dynamically -->
+    </div>
+    <div class="row-label">Jongseong combinations</div>
+    <div class="hangul-row" id="jongseong-characters">
+        <!-- contents are added dynamically -->
+    </div>
+
+</body>
+</html>
