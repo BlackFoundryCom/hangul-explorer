@@ -72,6 +72,26 @@ body {
   opacity: 1;
 }
 
+.copied-box {
+    opacity: 0.0;
+    position: relative;
+    z-index: 1;
+    top: -0.3em;
+    left: 0.4em;
+    font-size: 0.9rem;
+    /*width: 80px;*/
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: 0.2s;
+}
+
+.copied-box.shown {
+    opacity: 1;
+}
+
 
     </style>
     <script type="text/javascript">
@@ -135,7 +155,8 @@ function updateBigCharacter() {
 }
 
 
-const copyButtonSpan = " <span class='copy-icon' onclick='copyTextToClipboard(event)'></span>";
+const copyButtonSpan = " <span class='copy-icon' onclick='copyTextToClipboard(event)'></span><span class='copied-box'>Copied!</span>";
+
 
 function updateCombinations() {
     for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
@@ -306,6 +327,9 @@ function copyTextToClipboard(event) {
     let copiedText = event.target.parentElement.nextElementSibling.innerText;
     copiedText = copiedText.replace(/\s/g, "");
     navigator.clipboard.writeText(copiedText);
+    const copiedToolTop = event.target.nextElementSibling;
+    copiedToolTop.classList.add("shown");
+    setTimeout(() => copiedToolTop.classList.remove("shown"), 1000);
 }
 
 
