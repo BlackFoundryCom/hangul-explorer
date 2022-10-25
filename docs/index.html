@@ -23,6 +23,7 @@ body {
     flex-direction: row;
     font-size:  3rem;
     gap: 0.25rem;
+    margin-bottom: 0.25rem;
 }
 
 .hangul-row > div {
@@ -127,12 +128,12 @@ function updateCombinations() {
         const rowJamo = jamoGroups[rowGroupName][selectedJamos[rowGroupName]];
         const c = capitalizeFirstLetter;
         let rowLabel;
-        rowLabel = `All ${c(jamoGroupName)} combinations for ${c(columnGroupName)} ${columnJamo}`;
+        rowLabel = `All ${c(jamoGroupName)} combinations with ${c(columnGroupName)} ${columnJamo}`;
         if (rowJamo.length) {
             rowLabel += ` and ${c(rowGroupName)} ${rowJamo}`;
         } else {
             // assert rowGroupName === "jongseong"
-            rowLabel += " without Jongseong";
+            rowLabel += ", without Jongseong";
         }
         labelElement.innerText = rowLabel;
         const siblings = rowElement.children;
