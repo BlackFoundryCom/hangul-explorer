@@ -279,8 +279,6 @@ function handleGridCellClick(element, rowGroupName, columnGroupName) {
     updateCombinations();
     updateCellSelection(rowGroupName);
     updateCellSelection(columnGroupName);
-    console.log(columnIndex, rowIndex);
-    console.log(rowGroupName, columnGroupName);
 }
 
 
@@ -349,7 +347,16 @@ function capitalizeFirstLetter(s) {
 
 function copyTextToClipboard(event) {
     let copiedText = event.target.parentElement.nextElementSibling.innerText;
-    copiedText = copiedText.replace(/\s/g, "");
+    if (event.target.parentElement.nextElementSibling.id === "jamo-grid") {
+        const lines = [];
+        for (const child of event.target.parentElement.nextElementSibling.children) {
+            lines.push(child.innerText.replace(/\s/g, ""));
+        }
+        copiedText = lines.join("\n");
+    } else {
+        copiedText = event.target.parentElement.nextElementSibling.innerText;
+        copiedText = copiedText.replace(/\s/g, "");
+    }
     navigator.clipboard.writeText(copiedText);
     const copiedToolTop = event.target.nextElementSibling;
     copiedToolTop.classList.add("shown");
