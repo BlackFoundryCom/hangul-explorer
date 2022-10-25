@@ -57,6 +57,22 @@ body {
     padding-right: 2rem;
 }
 
+.copy-icon {
+  content: url("data:image/svg+xml,%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%20x%3D%220px%22%20y%3D%220px%22%20viewBox%3D%220%200%20115.77%20122.88%22%20style%3D%22enable-background%3Anew%200%200%20115.77%20122.88%22%20xml%3Aspace%3D%22preserve%22%3E%3Cstyle%20type%3D%22text/css%22%3E.st0%7Bfill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3B%7D%3C/style%3E%3Cg%3E%3Cpath%20class%3D%22st0%22%20d%3D%22M89.62%2C13.96v7.73h12.19h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02v0.02%20v73.27v0.01h-0.02c-0.01%2C3.84-1.57%2C7.33-4.1%2C9.86c-2.51%2C2.5-5.98%2C4.06-9.82%2C4.07v0.02h-0.02h-61.7H40.1v-0.02%20c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02v-0.02V92.51H13.96h-0.01v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1%20c-2.5-2.51-4.06-5.98-4.07-9.82H0v-0.02V13.96v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07V0h0.02h61.7%20h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02V13.96L89.62%2C13.96z%20M79.04%2C21.69v-7.73v-0.02h0.02%20c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v64.59v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h12.19V35.65%20v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07v-0.02h0.02H79.04L79.04%2C21.69z%20M105.18%2C108.92V35.65v-0.02%20h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v73.27v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h61.7h0.02%20v0.02c0.91%2C0%2C1.75-0.39%2C2.37-1.01c0.61-0.61%2C1-1.46%2C1-2.37h-0.02V108.92L105.18%2C108.92z%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+  width: 0.85em;
+  height: 0.85em;
+  opacity: 0.4;
+}
+
+.copy-icon:hover {
+  opacity: 0.75;
+}
+
+.copy-icon:active {
+  opacity: 1;
+}
+
+
     </style>
     <script type="text/javascript">
 
@@ -119,6 +135,8 @@ function updateBigCharacter() {
 }
 
 
+const copyButtonSpan = " <span class='copy-icon' onclick='copyTextToClipboard(event)'></span>";
+
 function updateCombinations() {
     for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
         const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(name => name !== jamoGroupName);
@@ -135,7 +153,7 @@ function updateCombinations() {
             // assert rowGroupName === "jongseong"
             rowLabel += ", without Jongseong";
         }
-        labelElement.innerText = rowLabel;
+        labelElement.innerHTML = rowLabel + copyButtonSpan;
         const siblings = rowElement.children;
         for (let i = 0; i < jamos.length; i++) {
             const jamo = jamos[i];
@@ -163,7 +181,7 @@ function updateGrid() {
         // assert rowGroupName === "jongseong"
         gridLabel += " without Jongseong";
     }
-    labelElement.innerText =gridLabel;
+    labelElement.innerHTML = gridLabel + copyButtonSpan;
 
     gridElement.innerText = "";
     for (const rowIndex of range(jamoGroups[rowGroupName].length)) {
@@ -284,6 +302,13 @@ function capitalizeFirstLetter(s) {
 }
 
 
+function copyTextToClipboard(event) {
+    let copiedText = event.target.parentElement.nextElementSibling.innerText;
+    copiedText = copiedText.replace(/\s/g, "");
+    navigator.clipboard.writeText(copiedText);
+}
+
+
 function setup() {
     for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
         for (const rowType of ["jamo", "characters"]) {
@@ -300,6 +325,11 @@ function setup() {
             }
         }
     }
+
+    for (const copyButton of document.getElementsByClassName("row-label")) {
+        copyButton.innerHTML += copyButtonSpan;
+    }
+
     window.onkeydown = handleArrowKeys;
     updateBigCharacter();
     updateCombinations();
