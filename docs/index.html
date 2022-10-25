@@ -108,6 +108,9 @@ const selectedJamos = {
 };
 
 
+let selectedGroup = "choseong";
+
+
 function updateBigCharacter() {
     const element = document.querySelector("#big-character");
     const char = composeHangul(...Object.values(selectedJamos));
@@ -117,7 +120,21 @@ function updateBigCharacter() {
 
 function updateCombinations() {
     for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
+        const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(name => name !== jamoGroupName);
         const rowElement = document.querySelector(`#${jamoGroupName}-characters`);
+        const labelElement = rowElement.previousElementSibling;
+        const columnJamo = jamoGroups[columnGroupName][selectedJamos[columnGroupName]];
+        const rowJamo = jamoGroups[rowGroupName][selectedJamos[rowGroupName]];
+        const c = capitalizeFirstLetter;
+        let rowLabel;
+        rowLabel = `All ${c(jamoGroupName)} combinations for ${c(columnGroupName)} ${columnJamo}`;
+        if (rowJamo.length) {
+            rowLabel += ` and ${c(rowGroupName)} ${rowJamo}`;
+        } else {
+            // assert rowGroupName === "jongseong"
+            rowLabel += " without Jongseong";
+        }
+        labelElement.innerText = rowLabel;
         const siblings = rowElement.children;
         for (let i = 0; i < jamos.length; i++) {
             const jamo = jamos[i];
@@ -131,7 +148,42 @@ function updateCombinations() {
 }
 
 
+function updateGrid() {
+    const jamoGroupName = selectedGroup;
+    const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(name => name !== jamoGroupName);
+    const gridElement = document.querySelector("#jamo-grid");
+    const labelElement = gridElement.previousElementSibling;
+    const gridJamo = jamoGroups[jamoGroupName][selectedJamos[jamoGroupName]];
+    const c = capitalizeFirstLetter;
+    let gridLabel =  "All Syllables";
+    if (gridJamo.length) {
+        gridLabel += ` with ${c(jamoGroupName)} ${gridJamo}`;
+    } else {
+        // assert rowGroupName === "jongseong"
+        gridLabel += " without Jongseong";
+    }
+    labelElement.innerText =gridLabel;
+
+    gridElement.innerText = "";
+    for (const rowIndex of range(jamoGroups[rowGroupName].length)) {
+        const rowElement = document.createElement("div");
+        rowElement.classList.add("hangul-row");
+        for (const columnIndex of range(jamoGroups[columnGroupName].length)) {
+            const cell = document.createElement("div");
+            const sel = {...selectedJamos};
+            sel[rowGroupName] = rowIndex;
+            sel[columnGroupName] = columnIndex;
+            const char = composeHangul(sel["choseong"], sel["jungseong"], sel["jongseong"]);
+            cell.innerText = char;
+            rowElement.appendChild(cell);
+        }
+        gridElement.appendChild(rowElement);
+    }
+}
+
+
 function selectRow(selectedJamoGroupName) {
+    selectedGroup = selectedJamoGroupName;
     for (const jamoGroupName of jamoGroupNames) {
         for (const rowType of ["jamo", "characters"]) {
             const rowElement = document.querySelector(`#${jamoGroupName}-${rowType}`);
@@ -152,6 +204,7 @@ function updateCellSelection(jamoGroupName) {
     }
     updateBigCharacter();
     updateCombinations();
+    updateGrid();
 }
 
 
@@ -210,6 +263,23 @@ function handleArrowKeys(event) {
         }
         selectRow(jamoGroupNames[groupIndex]);
     }
+    updateGrid();
+}
+
+
+function *range(start, stop, step = 1) {
+    if (stop === undefined) {
+        stop = start;
+        start = 0;
+    }
+    for (let i = start; i < stop; i += step) {
+        yield i;
+    }
+}
+
+
+function capitalizeFirstLetter(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 
@@ -232,6 +302,7 @@ function setup() {
     window.onkeydown = handleArrowKeys;
     updateBigCharacter();
     updateCombinations();
+    updateGrid();
     selectRow("choseong");
 }
 
@@ -267,6 +338,11 @@ window.onload = () => setup();
     </div>
     <div class="row-label">Jongseong combinations</div>
     <div class="hangul-row" id="jongseong-characters">
+        <!-- contents are added dynamically -->
+    </div>
+
+    <div class="row-label">Grid</div>
+    <div id="jamo-grid">
         <!-- contents are added dynamically -->
     </div>
 
