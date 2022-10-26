@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hangul Explorer</title>
+    <style id="uploaded-font"></style>
     <style type="text/css">
 
 @import url('https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300&display=block');
@@ -28,6 +29,29 @@ body {
     margin-top:  2rem;
 }
 
+#drop-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: #00000088;
+    z-index: 2;
+    transition: 0.2s;
+    color: white;
+    font-size: 2rem;
+    text-align: center;
+    pointer-events: none;
+}
+
+#drop-zone.drag-over {
+    opacity: 1;
+}
+
 .row-label {
     margin-top: 0.5rem;
     margin-bottom: 0.25rem;
@@ -50,6 +74,7 @@ body {
     padding-left: 0.45rem;
     padding-right: 0.45rem;
     transition: 0.1s;
+    font-family: UploadedFont, sans-serif;
 }
 
 .hangul-row > div:hover {
@@ -66,6 +91,7 @@ body {
 }
 
 #big-character {
+    font-family: UploadedFont, sans-serif;
     margin-top: 2.25rem;
     margin-bottom: 1.25rem;
     background-color: white;
@@ -384,6 +410,83 @@ function copyTextToClipboard(event) {
 }
 
 
+const fontTypeMapping = {
+    "ttf": "truetype",
+    "otf": "opentype",
+    "woff": "woff",
+    "woff2": "woff2",
+}
+
+
+async function handleDrop(event) {
+    event.preventDefault();
+    const dropZone = document.querySelector("#drop-zone");
+    const dropText = document.querySelector("#drop-text");
+    setTimeout(() => {
+        dropZone.classList.remove("drag-over");
+        dropText.innerText = "";
+    }, 1000)
+    for (const file of event.dataTransfer.files) {
+        const fileExtension = file.name.split(".").pop()?.toLowerCase();
+        if (fileExtension in fontTypeMapping) {
+            dropText.innerText = file.name;
+            setFont(await asBase64Data(file), fontTypeMapping[fileExtension]);
+        } else {
+            dropText.innerText = `Can't use “${file.name}” as a font`;
+        }
+        break;
+    }
+}
+
+
+function handleDragOver(event) {
+    const dropZone = document.querySelector("#drop-zone");
+    dropZone.classList.add("drag-over");
+    event.preventDefault()
+}
+
+
+function handleDragLeave(event) {
+    const dropZone = document.querySelector("#drop-zone");
+    dropZone.classList.remove("drag-over");
+    event.preventDefault();
+}
+
+
+async function setFont(fontData, fontType) {
+    const fontFaceCSS = `
+@font-face {
+font-family: "UploadedFont";
+src: url(data:font/${fontType};base64,${fontData})
+    format("${fontType}");
+}
+    `;
+    const fontFaceStyleElement = document.querySelector("#uploaded-font");
+    fontFaceStyleElement.innerText = fontFaceCSS;
+}
+
+
+async function asBase64Data(file) {
+    const data = await readFileAsync(file);
+    return btoa(data);
+}
+
+
+function readFileAsync(file) {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsBinaryString(file);
+    });
+}
+
+
 function setup() {
     for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
         for (const rowType of ["jamo", "characters"]) {
@@ -416,7 +519,10 @@ window.onload = () => setup();
 
     </script>
 </head>
-<body>
+<body ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+    <div id="drop-zone">
+        <span id="drop-text"></span>
+    </div>
 
     <div class="info-box">Welcome to the Hangul Explorer. Click on the cells to explore the Hangul character set. You can also use the arrow keys to navigate.</div>
 
