@@ -214,7 +214,7 @@ function updateCombinations() {
         const rowJamo = jamoGroups[rowGroupName][selectedJamos[rowGroupName]];
         const c = capitalizeFirstLetter;
         let rowLabel;
-        rowLabel = `All syllables with ${c(columnGroupName)} ${columnJamo}`;
+        rowLabel = `Each ${capitalizeFirstLetter(jamoGroupName)} with ${c(columnGroupName)} ${columnJamo}`;
         if (rowJamo.length) {
             rowLabel += ` and ${c(rowGroupName)} ${rowJamo}`;
         } else {
@@ -242,7 +242,7 @@ function updateGrid() {
     const labelElement = gridElement.previousElementSibling;
     const gridJamo = jamoGroups[jamoGroupName][selectedJamos[jamoGroupName]];
     const c = capitalizeFirstLetter;
-    let gridLabel =  "All syllables";
+    let gridLabel =  "Each syllable";
     if (gridJamo.length) {
         gridLabel += ` with ${c(jamoGroupName)} ${gridJamo}`;
     } else {
