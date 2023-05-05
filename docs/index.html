@@ -466,17 +466,18 @@
       }
 
       function copyTextToClipboard(event) {
+        const sourceElement = event.target.parentElement.nextElementSibling;
         let copiedText =
-          event.target.parentElement.nextElementSibling.innerText;
-        if (event.target.parentElement.nextElementSibling.id === "jamo-grid") {
+          sourceElement.innerText;
+        if (sourceElement.id === "jamo-grid") {
           const lines = [];
-          for (const child of event.target.parentElement.nextElementSibling
+          for (const child of sourceElement
             .children) {
             lines.push(child.innerText.replace(/\s/g, ""));
           }
           copiedText = lines.join("\n");
         } else {
-          copiedText = event.target.parentElement.nextElementSibling.innerText;
+          copiedText = sourceElement.innerText;
           copiedText = copiedText.replace(/\s/g, "");
         }
         navigator.clipboard.writeText(copiedText);
