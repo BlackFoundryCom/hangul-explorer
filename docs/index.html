@@ -1,577 +1,654 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Hangul Explorer</title>
     <style id="uploaded-font"></style>
     <style type="text/css">
+      @import url("https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300&display=block");
 
-@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:wght@300&display=block');
+      body {
+        font-family: "Inria Sans", sans-serif;
+        font-size: 1.1rem;
+        background-color: #c0c0c0;
+        padding: 1rem;
+      }
 
+      .info-box {
+        background-color: #888;
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+      }
 
-body {
-    font-family: "Inria Sans", sans-serif;
-    font-size: 1.1rem;
-    background-color: #C0C0C0;
-    padding: 1rem;
-}
+      .footer {
+        margin-top: 2rem;
+      }
 
-.info-box {
-    background-color: #888;
-    color: white;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-}
+      #drop-zone {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        width: 100vw;
+        height: 100vh;
+        background-color: #00000088;
+        z-index: 2;
+        transition: 0.2s;
+        color: white;
+        font-size: 2rem;
+        text-align: center;
+        pointer-events: none;
+      }
 
-.footer {
-    margin-top:  2rem;
-}
+      #drop-zone.drag-over {
+        opacity: 1;
+      }
 
-#drop-zone {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    width: 100vw;
-    height: 100vh;
-    background-color: #00000088;
-    z-index: 2;
-    transition: 0.2s;
-    color: white;
-    font-size: 2rem;
-    text-align: center;
-    pointer-events: none;
-}
+      .row-label {
+        margin-top: 0.5rem;
+        margin-bottom: 0.25rem;
+      }
 
-#drop-zone.drag-over {
-    opacity: 1;
-}
+      .hangul-row {
+        display: flex;
+        flex-direction: row;
+        font-size: 3rem;
+        gap: 0.25rem;
+        margin-bottom: 0.25rem;
+      }
 
-.row-label {
-    margin-top: 0.5rem;
-    margin-bottom: 0.25rem;
-}
+      .hangul-row > div {
+        background-color: #ececec;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        padding-top: 0.2rem;
+        padding-bottom: 0.2rem;
+        padding-left: 0.45rem;
+        padding-right: 0.45rem;
+        transition: 0.1s;
+        font-family: UploadedFont, sans-serif;
+      }
 
-.hangul-row {
-    display: flex;
-    flex-direction: row;
-    font-size:  3rem;
-    gap: 0.25rem;
-    margin-bottom: 0.25rem;
-}
+      .hangul-row > div:hover {
+        box-shadow: inset 0 0 4px #422;
+      }
 
-.hangul-row > div {
-    background-color: #ECECEC;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    padding-top: 0.2rem;
-    padding-bottom: 0.2rem;
-    padding-left: 0.45rem;
-    padding-right: 0.45rem;
-    transition: 0.1s;
-    font-family: UploadedFont, sans-serif;
-}
+      .hangul-row.selected > .selected {
+        background-color: white;
+        box-shadow: inset 0 0 5px #f44;
+      }
 
-.hangul-row > div:hover {
-    box-shadow: inset 0 0 4px #422;
-}
+      .hangul-row > .selected {
+        background-color: white;
+      }
 
-.hangul-row.selected > .selected {
-    background-color: white;
-    box-shadow: inset 0 0 5px #F44;
-}
+      #big-character {
+        font-family: UploadedFont, sans-serif;
+        margin-top: 2.25rem;
+        margin-bottom: 1.25rem;
+        background-color: white;
+        border-radius: 1rem;
+        font-size: 15rem;
+        width: 15rem;
+        text-align: center;
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
 
-.hangul-row > .selected {
-    background-color: white;
-}
+      .copy-icon {
+        content: url("data:image/svg+xml,%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%20x%3D%220px%22%20y%3D%220px%22%20viewBox%3D%220%200%20115.77%20122.88%22%20style%3D%22enable-background%3Anew%200%200%20115.77%20122.88%22%20xml%3Aspace%3D%22preserve%22%3E%3Cstyle%20type%3D%22text/css%22%3E.st0%7Bfill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3B%7D%3C/style%3E%3Cg%3E%3Cpath%20class%3D%22st0%22%20d%3D%22M89.62%2C13.96v7.73h12.19h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02v0.02%20v73.27v0.01h-0.02c-0.01%2C3.84-1.57%2C7.33-4.1%2C9.86c-2.51%2C2.5-5.98%2C4.06-9.82%2C4.07v0.02h-0.02h-61.7H40.1v-0.02%20c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02v-0.02V92.51H13.96h-0.01v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1%20c-2.5-2.51-4.06-5.98-4.07-9.82H0v-0.02V13.96v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07V0h0.02h61.7%20h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02V13.96L89.62%2C13.96z%20M79.04%2C21.69v-7.73v-0.02h0.02%20c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v64.59v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h12.19V35.65%20v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07v-0.02h0.02H79.04L79.04%2C21.69z%20M105.18%2C108.92V35.65v-0.02%20h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v73.27v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h61.7h0.02%20v0.02c0.91%2C0%2C1.75-0.39%2C2.37-1.01c0.61-0.61%2C1-1.46%2C1-2.37h-0.02V108.92L105.18%2C108.92z%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+        width: 0.9em;
+        height: 0.9em;
+        opacity: 0.4;
+        cursor: pointer;
+      }
 
-#big-character {
-    font-family: UploadedFont, sans-serif;
-    margin-top: 2.25rem;
-    margin-bottom: 1.25rem;
-    background-color: white;
-    border-radius: 1rem;
-    font-size: 15rem;
-    width: 15rem;
-    text-align: center;
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
+      .copy-icon:hover {
+        opacity: 0.75;
+      }
 
-.copy-icon {
-  content: url("data:image/svg+xml,%3Csvg%20version%3D%221.1%22%20id%3D%22Layer_1%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20xmlns%3Axlink%3D%22http%3A//www.w3.org/1999/xlink%22%20x%3D%220px%22%20y%3D%220px%22%20viewBox%3D%220%200%20115.77%20122.88%22%20style%3D%22enable-background%3Anew%200%200%20115.77%20122.88%22%20xml%3Aspace%3D%22preserve%22%3E%3Cstyle%20type%3D%22text/css%22%3E.st0%7Bfill-rule%3Aevenodd%3Bclip-rule%3Aevenodd%3B%7D%3C/style%3E%3Cg%3E%3Cpath%20class%3D%22st0%22%20d%3D%22M89.62%2C13.96v7.73h12.19h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02v0.02%20v73.27v0.01h-0.02c-0.01%2C3.84-1.57%2C7.33-4.1%2C9.86c-2.51%2C2.5-5.98%2C4.06-9.82%2C4.07v0.02h-0.02h-61.7H40.1v-0.02%20c-3.84-0.01-7.34-1.57-9.86-4.1c-2.5-2.51-4.06-5.98-4.07-9.82h-0.02v-0.02V92.51H13.96h-0.01v-0.02c-3.84-0.01-7.34-1.57-9.86-4.1%20c-2.5-2.51-4.06-5.98-4.07-9.82H0v-0.02V13.96v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07V0h0.02h61.7%20h0.01v0.02c3.85%2C0.01%2C7.34%2C1.57%2C9.86%2C4.1c2.5%2C2.51%2C4.06%2C5.98%2C4.07%2C9.82h0.02V13.96L89.62%2C13.96z%20M79.04%2C21.69v-7.73v-0.02h0.02%20c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v64.59v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h12.19V35.65%20v-0.01h0.02c0.01-3.85%2C1.58-7.34%2C4.1-9.86c2.51-2.5%2C5.98-4.06%2C9.82-4.07v-0.02h0.02H79.04L79.04%2C21.69z%20M105.18%2C108.92V35.65v-0.02%20h0.02c0-0.91-0.39-1.75-1.01-2.37c-0.61-0.61-1.46-1-2.37-1v0.02h-0.01h-61.7h-0.02v-0.02c-0.91%2C0-1.75%2C0.39-2.37%2C1.01%20c-0.61%2C0.61-1%2C1.46-1%2C2.37h0.02v0.01v73.27v0.02h-0.02c0%2C0.91%2C0.39%2C1.75%2C1.01%2C2.37c0.61%2C0.61%2C1.46%2C1%2C2.37%2C1v-0.02h0.01h61.7h0.02%20v0.02c0.91%2C0%2C1.75-0.39%2C2.37-1.01c0.61-0.61%2C1-1.46%2C1-2.37h-0.02V108.92L105.18%2C108.92z%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
-  width: 0.9em;
-  height: 0.9em;
-  opacity: 0.4;
-  cursor: pointer;
-}
+      .copy-icon:active {
+        opacity: 1;
+      }
 
-.copy-icon:hover {
-  opacity: 0.75;
-}
+      .copied-box {
+        opacity: 0;
+        position: relative;
+        z-index: 1;
+        top: -0.3em;
+        left: 0.4em;
+        font-size: 0.9rem;
+        /*width: 80px;*/
+        background-color: black;
+        color: #fff;
+        text-align: center;
+        padding: 4px 6px;
+        border-radius: 6px;
+        transition: 0.2s;
+      }
 
-.copy-icon:active {
-  opacity: 1;
-}
-
-.copied-box {
-    opacity: 0.0;
-    position: relative;
-    z-index: 1;
-    top: -0.3em;
-    left: 0.4em;
-    font-size: 0.9rem;
-    /*width: 80px;*/
-    background-color: black;
-    color: #fff;
-    text-align: center;
-    padding: 4px 6px;
-    border-radius: 6px;
-    transition: 0.2s;
-}
-
-.copied-box.shown {
-    opacity: 1;
-}
-
-
+      .copied-box.shown {
+        opacity: 1;
+      }
     </style>
     <script type="text/javascript">
+      "use strict";
 
-"use strict";
+      const choseongBase = 0x1100;
+      const jungseongBase = 0x1161;
+      const jongseongBase = 0x11a7;
+      const hangulBase = 0xac00;
 
-const choseongBase = 0x1100;
-const jungseongBase = 0x1161;
-const jongseongBase = 0x11A7;
-const hangulBase = 0xAC00;
+      const choseongCount = 19;
+      const jungseongCount = 21;
+      const jongseongCount = 28;
 
-const choseongCount = 19;
-const jungseongCount = 21;
-const jongseongCount = 28;
+      function composeHangul(choseongIndex, jungseongIndex, jongseongIndex) {
+        const hCode =
+          jungseongCount * jongseongCount * choseongIndex +
+          jongseongCount * jungseongIndex +
+          jongseongIndex +
+          hangulBase;
+        return String.fromCodePoint(hCode);
+      }
 
+      const jamoGroups = {
+        choseong: [
+          "ᄀ",
+          "ᄁ",
+          "ᄂ",
+          "ᄃ",
+          "ᄄ",
+          "ᄅ",
+          "ᄆ",
+          "ᄇ",
+          "ᄈ",
+          "ᄉ",
+          "ᄊ",
+          "ᄋ",
+          "ᄌ",
+          "ᄍ",
+          "ᄎ",
+          "ᄏ",
+          "ᄐ",
+          "ᄑ",
+          "ᄒ",
+        ],
+        jungseong: [
+          "ᅡ",
+          "ᅢ",
+          "ᅣ",
+          "ᅤ",
+          "ᅥ",
+          "ᅦ",
+          "ᅧ",
+          "ᅨ",
+          "ᅩ",
+          "ᅪ",
+          "ᅫ",
+          "ᅬ",
+          "ᅭ",
+          "ᅮ",
+          "ᅯ",
+          "ᅰ",
+          "ᅱ",
+          "ᅲ",
+          "ᅳ",
+          "ᅴ",
+          "ᅵ",
+        ],
+        jongseong: [
+          "",
+          "ᆨ",
+          "ᆩ",
+          "ᆪ",
+          "ᆫ",
+          "ᆬ",
+          "ᆭ",
+          "ᆮ",
+          "ᆯ",
+          "ᆰ",
+          "ᆱ",
+          "ᆲ",
+          "ᆳ",
+          "ᆴ",
+          "ᆵ",
+          "ᆶ",
+          "ᆷ",
+          "ᆸ",
+          "ᆹ",
+          "ᆺ",
+          "ᆻ",
+          "ᆼ",
+          "ᆽ",
+          "ᆾ",
+          "ᆿ",
+          "ᇀ",
+          "ᇁ",
+          "ᇂ",
+        ],
+      };
 
-function composeHangul(choseongIndex, jungseongIndex, jongseongIndex) {
-    const hCode = (
-        jungseongCount * jongseongCount * choseongIndex
-        + jongseongCount * jungseongIndex
-        + jongseongIndex
-        + hangulBase
-    );
-    return String.fromCodePoint(hCode);
-}
+      const jamoGroupNames = Object.keys(jamoGroups);
 
+      const selectedJamos = {
+        choseong: 0,
+        jungseong: 0,
+        jongseong: 0,
+      };
 
-const jamoGroups = {
-    "choseong": [
-        "ᄀ", "ᄁ", "ᄂ", "ᄃ", "ᄄ", "ᄅ", "ᄆ", "ᄇ", "ᄈ", "ᄉ", "ᄊ", "ᄋ", "ᄌ", "ᄍ",
-        "ᄎ", "ᄏ", "ᄐ", "ᄑ", "ᄒ",
-    ],
-    "jungseong": [
-        "ᅡ", "ᅢ", "ᅣ", "ᅤ", "ᅥ", "ᅦ", "ᅧ", "ᅨ", "ᅩ", "ᅪ", "ᅫ", "ᅬ", "ᅭ", "ᅮ",
-        "ᅯ", "ᅰ", "ᅱ", "ᅲ", "ᅳ", "ᅴ", "ᅵ",
-    ],
-    "jongseong": [
-        "", "ᆨ", "ᆩ", "ᆪ", "ᆫ", "ᆬ", "ᆭ", "ᆮ", "ᆯ", "ᆰ", "ᆱ", "ᆲ", "ᆳ", "ᆴ",
-        "ᆵ", "ᆶ", "ᆷ", "ᆸ", "ᆹ", "ᆺ", "ᆻ", "ᆼ", "ᆽ", "ᆾ", "ᆿ", "ᇀ", "ᇁ", "ᇂ",
-    ],
-};
+      let selectedGroup = "choseong";
 
+      function updateBigCharacter() {
+        const element = document.querySelector("#big-character");
+        const char = composeHangul(...Object.values(selectedJamos));
+        element.innerText = char;
+      }
 
-const jamoGroupNames = Object.keys(jamoGroups);
+      const copyButtonSpan =
+        " <span class='copy-icon' onclick='copyTextToClipboard(event)'></span><span class='copied-box'>Copied!</span>";
 
-
-const selectedJamos = {
-    "choseong": 0,
-    "jungseong": 0,
-    "jongseong": 0,
-};
-
-
-let selectedGroup = "choseong";
-
-
-function updateBigCharacter() {
-    const element = document.querySelector("#big-character");
-    const char = composeHangul(...Object.values(selectedJamos));
-    element.innerText = char;
-}
-
-
-const copyButtonSpan = " <span class='copy-icon' onclick='copyTextToClipboard(event)'></span><span class='copied-box'>Copied!</span>";
-
-
-function updateCombinations() {
-    for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
-        const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(name => name !== jamoGroupName);
-        const rowElement = document.querySelector(`#${jamoGroupName}-characters`);
-        const labelElement = rowElement.previousElementSibling;
-        const columnJamo = jamoGroups[columnGroupName][selectedJamos[columnGroupName]];
-        const rowJamo = jamoGroups[rowGroupName][selectedJamos[rowGroupName]];
-        const c = capitalizeFirstLetter;
-        let rowLabel;
-        rowLabel = `Each ${capitalizeFirstLetter(jamoGroupName)} with ${c(columnGroupName)} ${columnJamo}`;
-        if (rowJamo.length) {
+      function updateCombinations() {
+        for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
+          const [columnGroupName, rowGroupName] = Object.keys(
+            jamoGroups
+          ).filter((name) => name !== jamoGroupName);
+          const rowElement = document.querySelector(
+            `#${jamoGroupName}-characters`
+          );
+          const labelElement = rowElement.previousElementSibling;
+          const columnJamo =
+            jamoGroups[columnGroupName][selectedJamos[columnGroupName]];
+          const rowJamo = jamoGroups[rowGroupName][selectedJamos[rowGroupName]];
+          const c = capitalizeFirstLetter;
+          let rowLabel;
+          rowLabel = `Each ${capitalizeFirstLetter(jamoGroupName)} with ${c(
+            columnGroupName
+          )} ${columnJamo}`;
+          if (rowJamo.length) {
             rowLabel += ` and ${c(rowGroupName)} ${rowJamo}`;
-        } else {
+          } else {
             // assert rowGroupName === "jongseong"
             rowLabel += ", without Jongseong";
-        }
-        labelElement.innerHTML = rowLabel + copyButtonSpan;
-        const siblings = rowElement.children;
-        for (let i = 0; i < jamos.length; i++) {
+          }
+          labelElement.innerHTML = rowLabel + copyButtonSpan;
+          const siblings = rowElement.children;
+          for (let i = 0; i < jamos.length; i++) {
             const jamo = jamos[i];
             const cell = siblings[i];
-            const sel = {...selectedJamos};
+            const sel = { ...selectedJamos };
             sel[jamoGroupName] = i;
-            const char = composeHangul(sel["choseong"], sel["jungseong"], sel["jongseong"]);
+            const char = composeHangul(
+              sel["choseong"],
+              sel["jungseong"],
+              sel["jongseong"]
+            );
             cell.innerText = char;
+          }
         }
-    }
-}
+      }
 
+      function updateGrid() {
+        const jamoGroupName = selectedGroup;
+        const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(
+          (name) => name !== jamoGroupName
+        );
+        const gridElement = document.querySelector("#jamo-grid");
+        const labelElement = gridElement.previousElementSibling;
+        const gridJamo =
+          jamoGroups[jamoGroupName][selectedJamos[jamoGroupName]];
+        const c = capitalizeFirstLetter;
+        let gridLabel = "All syllables";
+        if (gridJamo.length) {
+          gridLabel += ` with ${c(jamoGroupName)} ${gridJamo}`;
+        } else {
+          // assert rowGroupName === "jongseong"
+          gridLabel += " without Jongseong";
+        }
+        labelElement.innerHTML = gridLabel + copyButtonSpan;
 
-function updateGrid() {
-    const jamoGroupName = selectedGroup;
-    const [columnGroupName, rowGroupName] = Object.keys(jamoGroups).filter(name => name !== jamoGroupName);
-    const gridElement = document.querySelector("#jamo-grid");
-    const labelElement = gridElement.previousElementSibling;
-    const gridJamo = jamoGroups[jamoGroupName][selectedJamos[jamoGroupName]];
-    const c = capitalizeFirstLetter;
-    let gridLabel =  "All syllables";
-    if (gridJamo.length) {
-        gridLabel += ` with ${c(jamoGroupName)} ${gridJamo}`;
-    } else {
-        // assert rowGroupName === "jongseong"
-        gridLabel += " without Jongseong";
-    }
-    labelElement.innerHTML = gridLabel + copyButtonSpan;
-
-    gridElement.innerText = "";
-    for (const rowIndex of range(jamoGroups[rowGroupName].length)) {
-        const rowElement = document.createElement("div");
-        rowElement.classList.add("hangul-row");
-        for (const columnIndex of range(jamoGroups[columnGroupName].length)) {
+        gridElement.innerText = "";
+        for (const rowIndex of range(jamoGroups[rowGroupName].length)) {
+          const rowElement = document.createElement("div");
+          rowElement.classList.add("hangul-row");
+          for (const columnIndex of range(jamoGroups[columnGroupName].length)) {
             const cell = document.createElement("div");
-            const sel = {...selectedJamos};
+            const sel = { ...selectedJamos };
             sel[rowGroupName] = rowIndex;
             sel[columnGroupName] = columnIndex;
-            const char = composeHangul(sel["choseong"], sel["jungseong"], sel["jongseong"]);
+            const char = composeHangul(
+              sel["choseong"],
+              sel["jungseong"],
+              sel["jongseong"]
+            );
             cell.innerText = char;
-            cell.onclick = event => handleGridCellClick(event.target, rowGroupName, columnGroupName);
-            cell.classList.toggle("selected",
-                (rowIndex === selectedJamos[rowGroupName]) && (columnIndex === selectedJamos[columnGroupName]));
+            cell.onclick = (event) =>
+              handleGridCellClick(event.target, rowGroupName, columnGroupName);
+            cell.classList.toggle(
+              "selected",
+              rowIndex === selectedJamos[rowGroupName] &&
+                columnIndex === selectedJamos[columnGroupName]
+            );
             rowElement.appendChild(cell);
+          }
+          gridElement.appendChild(rowElement);
         }
-        gridElement.appendChild(rowElement);
-    }
-}
+      }
 
+      function selectRow(selectedJamoGroupName) {
+        selectedGroup = selectedJamoGroupName;
+        for (const jamoGroupName of jamoGroupNames) {
+          for (const rowType of ["jamo", "characters"]) {
+            const rowElement = document.querySelector(
+              `#${jamoGroupName}-${rowType}`
+            );
+            rowElement.classList.toggle(
+              "selected",
+              jamoGroupName === selectedJamoGroupName
+            );
+          }
+        }
+      }
 
-function selectRow(selectedJamoGroupName) {
-    selectedGroup = selectedJamoGroupName;
-    for (const jamoGroupName of jamoGroupNames) {
+      function updateCellSelection(jamoGroupName) {
         for (const rowType of ["jamo", "characters"]) {
-            const rowElement = document.querySelector(`#${jamoGroupName}-${rowType}`);
-            rowElement.classList.toggle("selected", jamoGroupName === selectedJamoGroupName);
-        }
-    }
-
-}
-
-
-function updateCellSelection(jamoGroupName) {
-    for (const rowType of ["jamo", "characters"]) {
-        const siblings = document.querySelector(`#${jamoGroupName}-${rowType}`).children;
-        for (let i = 0; i < siblings.length; i++) {
+          const siblings = document.querySelector(
+            `#${jamoGroupName}-${rowType}`
+          ).children;
+          for (let i = 0; i < siblings.length; i++) {
             const child = siblings[i];
-            child.classList.toggle("selected", i === selectedJamos[jamoGroupName]);
+            child.classList.toggle(
+              "selected",
+              i === selectedJamos[jamoGroupName]
+            );
+          }
         }
-    }
-}
+      }
 
-
-function handleCellClick(element) {
-    const siblings = element.parentElement.children;
-    const jamoGroupName = element.parentElement.id.split("-", 1)[0];
-    selectRow(jamoGroupName);
-    for (let i = 0; i < siblings.length; i++) {
-        if (siblings[i] === element) {
+      function handleCellClick(element) {
+        const siblings = element.parentElement.children;
+        const jamoGroupName = element.parentElement.id.split("-", 1)[0];
+        selectRow(jamoGroupName);
+        for (let i = 0; i < siblings.length; i++) {
+          if (siblings[i] === element) {
             selectedJamos[jamoGroupName] = i;
             break;
-        }
-    }
-    updateCellSelection(jamoGroupName);
-    updateBigCharacter();
-    updateCombinations();
-    updateGrid();
-}
-
-
-function handleGridCellClick(element, rowGroupName, columnGroupName) {
-    const row = element.parentElement;
-    const rows = [...row.parentElement.children];
-    const rowElements = [...row.children];
-    const columnIndex = rowElements.indexOf(element);
-    const rowIndex = rows.indexOf(row);
-    rows[selectedJamos[rowGroupName]].children[selectedJamos[columnGroupName]].classList.remove("selected");
-    rows[rowIndex].children[columnIndex].classList.add("selected");
-    selectedJamos[rowGroupName] = rowIndex;
-    selectedJamos[columnGroupName] = columnIndex;
-    updateBigCharacter();
-    updateCombinations();
-    updateCellSelection(rowGroupName);
-    updateCellSelection(columnGroupName);
-}
-
-
-function handleArrowKeys(event) {
-    let cellIndexDelta = 0;
-    let rowIndexDelta = 0;
-    switch (event.key) {
-        case "ArrowLeft":
-            cellIndexDelta = -1;
-            break;
-        case "ArrowRight":
-            cellIndexDelta = 1;
-            break;
-        case "ArrowUp":
-            rowIndexDelta = -1;
-            break;
-        case "ArrowDown":
-            rowIndexDelta = 1;
-            break;
-        default:
-            return;
-    }
-    event.preventDefault();
-    const rowElement = document.querySelector(".hangul-row.selected");
-    const numSiblings = rowElement.children.length;
-    const jamoGroupName = rowElement.id.split("-", 1)[0];
-    if (cellIndexDelta) {
-        selectedJamos[jamoGroupName] += cellIndexDelta;
-        if (selectedJamos[jamoGroupName] < 0) {
-            selectedJamos[jamoGroupName] += numSiblings;
-        } else if (selectedJamos[jamoGroupName] >= numSiblings) {
-            selectedJamos[jamoGroupName] -= numSiblings;
+          }
         }
         updateCellSelection(jamoGroupName);
-    } else {
-        let groupIndex = jamoGroupNames.indexOf(jamoGroupName);
-        groupIndex += rowIndexDelta;
-        if (groupIndex < 0) {
+        updateBigCharacter();
+        updateCombinations();
+        updateGrid();
+      }
+
+      function handleGridCellClick(element, rowGroupName, columnGroupName) {
+        const row = element.parentElement;
+        const rows = [...row.parentElement.children];
+        const rowElements = [...row.children];
+        const columnIndex = rowElements.indexOf(element);
+        const rowIndex = rows.indexOf(row);
+        rows[selectedJamos[rowGroupName]].children[
+          selectedJamos[columnGroupName]
+        ].classList.remove("selected");
+        rows[rowIndex].children[columnIndex].classList.add("selected");
+        selectedJamos[rowGroupName] = rowIndex;
+        selectedJamos[columnGroupName] = columnIndex;
+        updateBigCharacter();
+        updateCombinations();
+        updateCellSelection(rowGroupName);
+        updateCellSelection(columnGroupName);
+      }
+
+      function handleArrowKeys(event) {
+        let cellIndexDelta = 0;
+        let rowIndexDelta = 0;
+        switch (event.key) {
+          case "ArrowLeft":
+            cellIndexDelta = -1;
+            break;
+          case "ArrowRight":
+            cellIndexDelta = 1;
+            break;
+          case "ArrowUp":
+            rowIndexDelta = -1;
+            break;
+          case "ArrowDown":
+            rowIndexDelta = 1;
+            break;
+          default:
+            return;
+        }
+        event.preventDefault();
+        const rowElement = document.querySelector(".hangul-row.selected");
+        const numSiblings = rowElement.children.length;
+        const jamoGroupName = rowElement.id.split("-", 1)[0];
+        if (cellIndexDelta) {
+          selectedJamos[jamoGroupName] += cellIndexDelta;
+          if (selectedJamos[jamoGroupName] < 0) {
+            selectedJamos[jamoGroupName] += numSiblings;
+          } else if (selectedJamos[jamoGroupName] >= numSiblings) {
+            selectedJamos[jamoGroupName] -= numSiblings;
+          }
+          updateCellSelection(jamoGroupName);
+        } else {
+          let groupIndex = jamoGroupNames.indexOf(jamoGroupName);
+          groupIndex += rowIndexDelta;
+          if (groupIndex < 0) {
             groupIndex += 3;
-        } else if (groupIndex >= 3) {
+          } else if (groupIndex >= 3) {
             groupIndex -= 3;
+          }
+          selectRow(jamoGroupNames[groupIndex]);
         }
-        selectRow(jamoGroupNames[groupIndex]);
-    }
-    updateBigCharacter();
-    updateCombinations();
-    updateGrid();
-}
+        updateBigCharacter();
+        updateCombinations();
+        updateGrid();
+      }
 
+      function* range(start, stop, step = 1) {
+        if (stop === undefined) {
+          stop = start;
+          start = 0;
+        }
+        for (let i = start; i < stop; i += step) {
+          yield i;
+        }
+      }
 
-function *range(start, stop, step = 1) {
-    if (stop === undefined) {
-        stop = start;
-        start = 0;
-    }
-    for (let i = start; i < stop; i += step) {
-        yield i;
-    }
-}
+      function capitalizeFirstLetter(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
 
-
-function capitalizeFirstLetter(s) {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-
-function copyTextToClipboard(event) {
-    let copiedText = event.target.parentElement.nextElementSibling.innerText;
-    if (event.target.parentElement.nextElementSibling.id === "jamo-grid") {
-        const lines = [];
-        for (const child of event.target.parentElement.nextElementSibling.children) {
+      function copyTextToClipboard(event) {
+        let copiedText =
+          event.target.parentElement.nextElementSibling.innerText;
+        if (event.target.parentElement.nextElementSibling.id === "jamo-grid") {
+          const lines = [];
+          for (const child of event.target.parentElement.nextElementSibling
+            .children) {
             lines.push(child.innerText.replace(/\s/g, ""));
+          }
+          copiedText = lines.join("\n");
+        } else {
+          copiedText = event.target.parentElement.nextElementSibling.innerText;
+          copiedText = copiedText.replace(/\s/g, "");
         }
-        copiedText = lines.join("\n");
-    } else {
-        copiedText = event.target.parentElement.nextElementSibling.innerText;
-        copiedText = copiedText.replace(/\s/g, "");
-    }
-    navigator.clipboard.writeText(copiedText);
-    const copiedToolTop = event.target.nextElementSibling;
-    copiedToolTop.classList.add("shown");
-    setTimeout(() => copiedToolTop.classList.remove("shown"), 800);
-}
+        navigator.clipboard.writeText(copiedText);
+        const copiedToolTop = event.target.nextElementSibling;
+        copiedToolTop.classList.add("shown");
+        setTimeout(() => copiedToolTop.classList.remove("shown"), 800);
+      }
 
+      const fontTypeMapping = {
+        ttf: "truetype",
+        otf: "opentype",
+        woff: "woff",
+        woff2: "woff2",
+      };
 
-const fontTypeMapping = {
-    "ttf": "truetype",
-    "otf": "opentype",
-    "woff": "woff",
-    "woff2": "woff2",
-}
-
-
-async function handleDrop(event) {
-    event.preventDefault();
-    const dropZone = document.querySelector("#drop-zone");
-    const dropText = document.querySelector("#drop-text");
-    setTimeout(() => {
-        dropZone.classList.remove("drag-over");
-        dropText.innerText = "";
-    }, 1000)
-    for (const file of event.dataTransfer.files) {
-        const fileExtension = file.name.split(".").pop()?.toLowerCase();
-        if (fileExtension in fontTypeMapping) {
+      async function handleDrop(event) {
+        event.preventDefault();
+        const dropZone = document.querySelector("#drop-zone");
+        const dropText = document.querySelector("#drop-text");
+        setTimeout(() => {
+          dropZone.classList.remove("drag-over");
+          dropText.innerText = "";
+        }, 1000);
+        for (const file of event.dataTransfer.files) {
+          const fileExtension = file.name.split(".").pop()?.toLowerCase();
+          if (fileExtension in fontTypeMapping) {
             dropText.innerText = file.name;
             setFont(await asBase64Data(file), fontTypeMapping[fileExtension]);
-        } else {
+          } else {
             dropText.innerText = `Can't use “${file.name}” as a font`;
+          }
+          break;
         }
-        break;
-    }
-}
+      }
 
+      function handleDragOver(event) {
+        const dropZone = document.querySelector("#drop-zone");
+        dropZone.classList.add("drag-over");
+        event.preventDefault();
+      }
 
-function handleDragOver(event) {
-    const dropZone = document.querySelector("#drop-zone");
-    dropZone.classList.add("drag-over");
-    event.preventDefault()
-}
+      function handleDragLeave(event) {
+        const dropZone = document.querySelector("#drop-zone");
+        dropZone.classList.remove("drag-over");
+        event.preventDefault();
+      }
 
-
-function handleDragLeave(event) {
-    const dropZone = document.querySelector("#drop-zone");
-    dropZone.classList.remove("drag-over");
-    event.preventDefault();
-}
-
-
-async function setFont(fontData, fontType) {
-    const fontFaceCSS = `
+      async function setFont(fontData, fontType) {
+        const fontFaceCSS = `
 @font-face {
 font-family: "UploadedFont";
 src: url(data:font/${fontType};base64,${fontData})
     format("${fontType}");
 }
     `;
-    const fontFaceStyleElement = document.querySelector("#uploaded-font");
-    fontFaceStyleElement.innerText = fontFaceCSS;
-}
+        const fontFaceStyleElement = document.querySelector("#uploaded-font");
+        fontFaceStyleElement.innerText = fontFaceCSS;
+      }
 
+      async function asBase64Data(file) {
+        const data = await readFileAsync(file);
+        return btoa(data);
+      }
 
-async function asBase64Data(file) {
-    const data = await readFileAsync(file);
-    return btoa(data);
-}
+      function readFileAsync(file) {
+        return new Promise((resolve, reject) => {
+          let reader = new FileReader();
 
+          reader.onload = () => {
+            resolve(reader.result);
+          };
 
-function readFileAsync(file) {
-    return new Promise((resolve, reject) => {
-        let reader = new FileReader();
+          reader.onerror = reject;
 
-        reader.onload = () => {
-          resolve(reader.result);
-        };
+          reader.readAsBinaryString(file);
+        });
+      }
 
-        reader.onerror = reject;
-
-        reader.readAsBinaryString(file);
-    });
-}
-
-
-function setup() {
-    for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
-        for (const rowType of ["jamo", "characters"]) {
-            const rowElement = document.querySelector(`#${jamoGroupName}-${rowType}`);
+      function setup() {
+        for (const [jamoGroupName, jamos] of Object.entries(jamoGroups)) {
+          for (const rowType of ["jamo", "characters"]) {
+            const rowElement = document.querySelector(
+              `#${jamoGroupName}-${rowType}`
+            );
             for (let i = 0; i < jamos.length; i++) {
-                const jamo = jamos[i];
-                const cell = document.createElement("div");
-                cell.innerText = jamo || "\u00A0\u00A0\u00A0";
-                cell.onclick = event => handleCellClick(event.target);
-                if (i === selectedJamos[jamoGroupName]) {
-                    cell.classList.add("selected");
-                }
-                rowElement.appendChild(cell);
+              const jamo = jamos[i];
+              const cell = document.createElement("div");
+              cell.innerText = jamo || "\u00A0\u00A0\u00A0";
+              cell.onclick = (event) => handleCellClick(event.target);
+              if (i === selectedJamos[jamoGroupName]) {
+                cell.classList.add("selected");
+              }
+              rowElement.appendChild(cell);
             }
+          }
         }
-    }
 
-    for (const copyButton of document.getElementsByClassName("row-label")) {
-        copyButton.innerHTML += copyButtonSpan;
-    }
+        for (const copyButton of document.getElementsByClassName("row-label")) {
+          copyButton.innerHTML += copyButtonSpan;
+        }
 
-    window.onkeydown = handleArrowKeys;
-    updateBigCharacter();
-    updateCombinations();
-    updateGrid();
-    selectRow("choseong");
-}
+        window.onkeydown = handleArrowKeys;
+        updateBigCharacter();
+        updateCombinations();
+        updateGrid();
+        selectRow("choseong");
+      }
 
-window.onload = () => setup();
-
+      window.onload = () => setup();
     </script>
-</head>
-<body ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+  </head>
+  <body
+    ondrop="handleDrop(event)"
+    ondragover="handleDragOver(event)"
+    ondragleave="handleDragLeave(event)"
+  >
     <div id="drop-zone">
-        <span id="drop-text"></span>
+      <span id="drop-text"></span>
     </div>
 
     <div class="info-box">
-    Click on the cells to explore the Hangul character set.
-    Additionally, you can use the arrow keys to navigate.
-    <br>
-    Click on a “copy” icon to copy the characters from a section.
-    <br>
-    Drop a Hangul font file onto the page to use a different font. Supported formats are TrueType, OpenType, woff and woff2. (The file will not be uploaded anywhere.)
+      Click on the cells to explore the Hangul character set. Additionally, you
+      can use the arrow keys to navigate.
+      <br />
+      Click on a “copy” icon to copy the characters from a section.
+      <br />
+      Drop a Hangul font file onto the page to use a different font. Supported
+      formats are TrueType, OpenType, woff and woff2. (The file will not be
+      uploaded anywhere.)
     </div>
 
     <div class="row-label">Choseong</div>
     <div class="hangul-row" id="choseong-jamo">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
     <div class="row-label">Jungseong</div>
     <div class="hangul-row" id="jungseong-jamo">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
     <div class="row-label">Jongseong</div>
     <div class="hangul-row" id="jongseong-jamo">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
 
     <div id="big-character">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
 
     <div class="row-label">Choseong combinations</div>
     <div class="hangul-row" id="choseong-characters">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
     <div class="row-label">Jungseong combinations</div>
     <div class="hangul-row" id="jungseong-characters">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
     <div class="row-label">Jongseong combinations</div>
     <div class="hangul-row" id="jongseong-characters">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
 
     <div class="row-label">Grid</div>
     <div id="jamo-grid">
-        <!-- contents are added dynamically -->
+      <!-- contents are added dynamically -->
     </div>
 
-    <div class="footer">Hangul Explorer was made by Just van Rossum for
-        <a href="https://black-foundry.com/">Black[Foundry]</a>.
-        Contributions <a href="https://github.com/BlackFoundryCom/hangul-explorer">are welcome on GitHub</a>.</div>
-
-</body>
+    <div class="footer">
+      Hangul Explorer was made by Just van Rossum for
+      <a href="https://black-foundry.com/">Black[Foundry]</a>. Contributions
+      <a href="https://github.com/BlackFoundryCom/hangul-explorer"
+        >are welcome on GitHub</a
+      >.
+    </div>
+  </body>
 </html>
