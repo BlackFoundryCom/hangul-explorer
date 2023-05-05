@@ -467,18 +467,19 @@
 
       function copyTextToClipboard(event) {
         const sourceElement = event.target.parentElement.nextElementSibling;
-        let copiedText =
-          sourceElement.innerText;
+        let copiedText = sourceElement.innerText;
         if (sourceElement.id === "jamo-grid") {
           const lines = [];
-          for (const child of sourceElement
-            .children) {
+          for (const child of sourceElement.children) {
             lines.push(child.innerText.replace(/\s/g, ""));
           }
           copiedText = lines.join("\n");
         } else {
           copiedText = sourceElement.innerText;
           copiedText = copiedText.replace(/\s/g, "");
+          if (event.altKey) {
+            copiedText = [...copiedText].join("\n");
+          }
         }
         navigator.clipboard.writeText(copiedText);
         const copiedToolTop = event.target.nextElementSibling;
@@ -602,7 +603,9 @@ src: url(data:font/${fontType};base64,${fontData})
       Click on the cells to explore the Hangul character set. Additionally, you
       can use the arrow keys to navigate.
       <br />
-      Click on a “copy” icon to copy the characters from a section.
+      Click on a “copy” icon to copy the characters from a section. Hold the
+      “alt” key while copying and each character will be placed on a separate
+      line.
       <br />
       Drop a Hangul font file onto the page to use a different font. Supported
       formats are TrueType, OpenType, woff and woff2. (The file will not be
